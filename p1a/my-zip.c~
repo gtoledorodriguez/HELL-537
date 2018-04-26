@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main (int argc, char *argv[]){
+  // argv[0] -> my-zip
+  if(argc >= 2){
+    int i = 1;
+    char* letter[512];
+    int* letterNum[512];
+    size_t letterSize = 512;
+    int x;
+    for(x = 0; x<letterSize; x++){
+      letter[x] = (char*) malloc(letterSize * sizeof(char));
+      letterNum[x] = (int*) malloc(letterSize * sizeof(int));
+    }
+    int j = 0;
+    int firstLetter = 1;
+    int r =0;
+    while(i < argc){
+     FILE *fp = fopen(argv[i],"r");
+     if (fp == NULL) {
+       printf("my-zip: cannot open file\n");
+       exit(1);
+     }
+     char* buffer;
+     size_t bufferSize = 512;
+     buffer = (char*) malloc(bufferSize * sizeof(char));
+     while(getline(&buffer, &bufferSize, fp)!= -1){
+       int m = 0;
+       j = 0;
+       if(firstLetter == 1  && *buffer != '\0'){
+             letter[0][0] = buffer[0];
+             letterNum[0][0] = 1;
+             m = 1;
+             firstLetter = 0;
+       }
+       while(buffer[m]!= '\n' && buffer[m] != '\0'){
+	 if(buffer[m] == letter[r][j]){
+             letterNum[r][j]++;
+             m++;
+          }
+          else{
+            j++;
+            if(letterNum[r][j] == '\0'){
+               letterNum[r][j] = 0;
+               letter[r][j] = buffer[m];
+	    }
+          }  
+       }
+        if(*(buffer + m)== '\n'){
+	  //printf("%s", buffer);
+	  r++;
+	  j = 0;
+	}
+     }
+     free(buffer);
+     fclose(fp);
+     i++;
+    }
+    j = 0;
+    while(letterNum[r][j] != 0){
+      while(letterNum[r][j] != 0){
+	fwrite(&letterNum[r][j], sizeof(int), 1, stdout);
+	printf("%c",letter[r][j]);
+	j++;
+      }
+      int spaceNum = 1;
+      char space = '\n';
+      fwrite(&spaceNum, sizeof(int), 1, stdout);
+      printf("%c",space);
+    r++;
+    }
+    for(x=0;x<letterSize;x++){
+      free(letter[x]);
+      free(letterNum[x]);
+    }
+  }
+  else if(argc < 3){
+     printf("my-zip: file1 [file2 ...]\n");
+       exit(1);
+  }
+  else{
+    exit(0);
+  }
+  return 0;
+}
